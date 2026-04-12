@@ -10,23 +10,28 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.neo4j.node.FileBlob;
 import com.neo4j.node.Tree;
+import com.neo4j.utils.HashUtil;
 
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 @Service
 public class TreeService {
-
-    public Tree treeRepresentation (List<String> filePaths, MultipartFile file){
+    //implement a feature in controller which throws error if filepaths.length
+    public Tree treeRepresentation (List<String> filePaths, List<MultipartFile> file){
 
         Tree rootTree = new Tree();
         rootTree.setFolderName("/");
         rootTree.setSubTrees(new ArrayList<>());
         rootTree.setFileBlob(new ArrayList<>());
 
-        for (String filePath : filePaths) {
+        for (int i = 0; i < filePaths.size(); i++ ) {
+            //String filePath = filePaths[i];
             Tree currentNode = rootTree;
-            String[] directoryNodes = filePath.split("/");
-            for (int i = 0; i < directoryNodes.length - 1; i++) {
+            String[] directoryNodes = filePaths.get(i).split("/");
+            for (int j = 0; j < directoryNodes.length - 1; i++) {
                 //rewrite this using guard clause(later)
-                String temp = directoryNodes[i]; //to trick the compiler into thinking this is the final variable.
+                String temp = directoryNodes[j]; //to trick the compiler into thinking this is the final variable.
                 // this is becuase whenever a lamda is used in java it is neccessary for any outside variable to be final and java can't guarentee
                 // it being final becuase i keeps on changing. 
                 Tree matchingTree = currentNode.getSubTrees().stream()
@@ -53,7 +58,7 @@ public class TreeService {
                 FileBlob newBlob = new FileBlob();
                 newBlob.setFileName(directoryNodes[directoryNodes.length - 1]);
                 try {
-                    newBlob.setRawContent(file.getBytes());
+                    newBlob.setRawContent(file.get(i).getBytes());
                 } catch (IOException e) {
                     throw new RuntimeException("Error", e);
                 }
@@ -61,7 +66,7 @@ public class TreeService {
             }
             else{
                 try{
-                    byte[] fileContent = file.getBytes();
+                    byte[] fileContent = file.get(i).getBytes();
                     if (!Arrays.equals(fileContent, matchingBlob.getRawContent())) {
                         matchingBlob.setRawContent(fileContent);
                 }
