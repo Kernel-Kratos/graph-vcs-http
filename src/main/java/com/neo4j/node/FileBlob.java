@@ -17,7 +17,6 @@ import lombok.Setter;
 public class FileBlob{
     @Id
     private String hashId;
-    private String fileName;
     //using byte[] instead of String because it will keep the structure as it is and also because i can store anything.
     private byte[] rawContent;
 
