@@ -24,7 +24,7 @@ public class Tree {
     @Relationship(type = "HAS_SUBTREES", direction = Relationship.Direction.OUTGOING)
     private List<Tree> subTrees;
 
-    @Relationship(type = "HAS_Blobs", direction = Relationship.Direction.OUTGOING)
-    private List<FileBlob> fileBlob;
+    @Relationship(type = "CONTAINS_BLOB", direction = Relationship.Direction.OUTGOING)
+    private List<BlobPointer> blobPointers;
 }
  
