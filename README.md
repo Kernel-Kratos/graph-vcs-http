@@ -52,3 +52,4 @@ The engine maps standard filesystem concepts into the following Graph Nodes and 
 * [x] Commit snapshot ingestion.
 * [ ] Depository and Branch wrapper logic for repository tracking.
 * [ ] Retrieval API to reconstruct filesystem trees from a target commit.
+* [ ] Advanced Cypher Retrieval API to traverse the graph and reconstruct filesystem trees from any target commit.
