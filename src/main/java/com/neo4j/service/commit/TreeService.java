@@ -2,7 +2,6 @@ package com.neo4j.service.commit;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
