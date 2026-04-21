@@ -39,7 +39,7 @@ public class CommitIngestionService {
                 newCommit.setParent(parent);
             }
         String rawData = newCommit.getEmail() + newCommit.getAuthor() + newCommit.getMessage() 
-                + newCommit.getTimestamp().toString() + newCommit.getTree().getHashId() + (parentHash != null ? parentHash: ""); //wtf is this last one
+                + newCommit.getTimestamp().toString() + newCommit.getTree().getHashId() + (parentHash != null ? parentHash: ""); //the last part "" appends the string with nothing. 
         newCommit.setHashId(HashUtil.hashString(rawData));
         return commitRepository.save(newCommit);
     }
