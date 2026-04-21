@@ -2,6 +2,7 @@ package com.neo4j.service.commit;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,6 +10,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.neo4j.node.BlobPointer;
 import com.neo4j.node.FileBlob;
 import com.neo4j.node.Tree;
 import com.neo4j.repository.TreeRepository;
@@ -26,7 +29,7 @@ public class TreeService {
         Tree rootTree = new Tree();
         rootTree.setFolderName("/");
         rootTree.setSubTrees(new ArrayList<>());
-        rootTree.setFileBlob(new ArrayList<>());
+        rootTree.setBlobPointers(new ArrayList<>());
 
         for (int i = 0; i < filePaths.size(); i++ ) {
             Tree currentNode = rootTree;
@@ -44,7 +47,7 @@ public class TreeService {
                     Tree newDirectory = new Tree();
                     newDirectory.setFolderName(directoryNodes[j]);
                     newDirectory.setSubTrees(new ArrayList<>());
-                    newDirectory.setFileBlob(new ArrayList<>());
+                    newDirectory.setBlobPointers(new ArrayList<>());
                     currentNode.getSubTrees().add(newDirectory);
                     currentNode = newDirectory;
                 }
@@ -52,25 +55,29 @@ public class TreeService {
                 currentNode = matchingTree;
                 }
             }
-            FileBlob matchingBlob = currentNode.getFileBlob().stream()
-                    .filter(fileBlob -> fileBlob.getFileName().equals(directoryNodes[directoryNodes.length - 1]))
+            BlobPointer matchingBlobName = currentNode.getBlobPointers().stream()
+                    .filter(blobPointer -> blobPointer.getFileName().equals(directoryNodes[directoryNodes.length - 1]))
                     .findFirst()
                     .orElse(null);
-            if (matchingBlob == null){
-                FileBlob newBlob = new FileBlob();
-                newBlob.setFileName(directoryNodes[directoryNodes.length - 1]);
+            if (matchingBlobName == null){
+                BlobPointer newBlobName = new BlobPointer();
+                newBlobName.setFileName(directoryNodes[directoryNodes.length - 1]);
                 try {
+                    FileBlob newBlob = new FileBlob();
                     newBlob.setRawContent(file.get(i).getBytes());
+                    newBlobName.setBlob(newBlob);
                 } catch (IOException e) {
                     throw new RuntimeException("Error", e);
                 }
-                currentNode.getFileBlob().add(newBlob);
+                currentNode.getBlobPointers().add(newBlobName);
             }
             else{
                 try{
                     byte[] fileContent = file.get(i).getBytes();
-                    if (!Arrays.equals(fileContent, matchingBlob.getRawContent())) {
-                        matchingBlob.setRawContent(fileContent);
+                    if (!Arrays.equals(fileContent, matchingBlobName.getBlob().getRawContent())) {
+                    FileBlob newFileBlob = new FileBlob();
+                    newFileBlob.setRawContent(fileContent);
+                    matchingBlobName.setBlob(newFileBlob);
                 }
                 } catch(IOException e){
                     throw new RuntimeException("Error", e);
@@ -93,9 +100,9 @@ public class TreeService {
         for (Tree currentNode : tree.getSubTrees()) {
             hashingIt(currentNode);
         }
-        for (FileBlob blob : tree.getFileBlob()){
+        for (BlobPointer blobPointer : tree.getBlobPointers()){
                 try{
-                blob.setHashId(HashUtil.hashBlob(blob.getRawContent()));
+                blobPointer.getBlob().setHashId(HashUtil.hashBlob(blobPointer.getBlob().getRawContent()));
                 } catch (NoSuchAlgorithmException e){
                     throw new RuntimeException(e);
                 }
@@ -107,8 +114,8 @@ public class TreeService {
         //we are on hello then this list will store : hash of hi.java, hell and the generate a hash based on this.
         List<String> childHashes = new ArrayList<>();
 
-        for (FileBlob blob : tree.getFileBlob()){
-            childHashes.add("blob:" + blob.getHashId());
+        for (BlobPointer blobpPointer : tree.getBlobPointers()){
+            childHashes.add("blob:" + blobpPointer.getBlob().getHashId());
         }
 
         for (Tree subTree : tree.getSubTrees()){
@@ -126,3 +133,4 @@ public class TreeService {
     // because if a file's hash ends up being 08732... 
     // and the folder's hash ends uo being same 0832.. this will lead to collison and possibly rewrite.
 }
+
