@@ -42,4 +42,13 @@ The engine maps standard filesystem concepts into the following Graph Nodes and 
    ```bash
    mvn spring-boot:run
    ```
-   
+
+
+
+
+## Current Status & Roadmap
+* [x] Core DAG generation and hashing engine.
+* [x] Byte-level deduplication and relationship mapping.
+* [x] Commit snapshot ingestion.
+* [ ] Depository and Branch wrapper logic for repository tracking.
+* [ ] Retrieval API to reconstruct filesystem trees from a target commit.
