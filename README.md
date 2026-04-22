@@ -46,15 +46,18 @@ The engine maps standard filesystem concepts into the following Graph Nodes and 
 ## API Reference
  1. Ingest a commit
     Creates a new commit snapshot from a list of files and constructs underlying Merkle DAG.
-    Endpoint: `(Post /graph-vcs-http/api/v1)`
-    Content Type: multipart/form-data
-   | Key | Type | Required | Description |
-   | filepath | List<String> | Yes | The path of the file (eg. src/main/hello.java) |
-   | file | List<MultipartFile> | Yes | The actual file(blob) |
-   | autor | String | Yes | Name of Commit's Author |
-   | email | String | Yes | Email of Commit's Author |
-   | message | String | Yes | Commit message |
-   | parentHash | String | No (Optional) | The SHA-256 hash of previous commit |
+    
+    **Endpoint: `(Post /graph-vcs-http/api/v1)`**
+    > Content Type: multipart/form-data
+    
+      | Key | Type | Required | Description |
+      |  :---- | ---- |  :---- | ---- |  
+      | filepath | List<String> | Yes | The path of the file (eg. src/main/hello.java) |
+      | file | List<MultipartFile> | Yes | The actual file(blob) |
+      | autor | String | Yes | Name of Commit's Author |
+      | email | String | Yes | Email of Commit's Author |
+      | message | String | Yes | Commit message |
+      | parentHash | String | No (Optional) | The SHA-256 hash of previous commit |
 
 
 ## Current Status & Roadmap
