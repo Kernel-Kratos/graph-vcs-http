@@ -21,7 +21,7 @@ public class Depository {
     private String repoName;
 
     @Relationship(type = "HAS_BRANCHES", direction = Relationship.Direction.OUTGOING)
-    private List<Branch> branch;
+    private List<Branch> branches;
 
     @Relationship(type = "HAS_HEAD", direction = Relationship.Direction.OUTGOING)
     private Commit head;

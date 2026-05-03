@@ -24,15 +24,15 @@ public class DepositoryService {
                 .orElseGet(() -> {
                     Depository newDepository = new Depository();
                     newDepository.setRepoName(repoName);
-                    newDepository.setBranch(new ArrayList<>());
+                    newDepository.setBranches(new ArrayList<>());
                     return depositoryRepository.save(newDepository);
                 });
        Branch updatedBranch = branchService.addToBranch(branchName, commit);
-       boolean branchExists = depository.getBranch().stream()
+       boolean branchExists = depository.getBranches().stream()
                     .anyMatch(branch -> branch.getBranchName().equals(branchName));
         if (!branchExists){
-            depository.getBranch().add(updatedBranch);
-        }        
+            depository.getBranches().add(updatedBranch);
+        }   
         depository.setHead(commit);
         return depositoryRepository.save(depository);
     }
@@ -40,13 +40,8 @@ public class DepositoryService {
     public DepositoryDto convertTDepositoryDto (Depository depository, CommitDto commitDto){
         DepositoryDto depositoryDto = new DepositoryDto();
         depositoryDto.setRepoName(depository.getRepoName());
-        depositoryDto.setBranchName(depository.getBranch().getLast().getBranchName());
+        depositoryDto.setBranchName(depository.getBranches().getLast().getBranchName());
         depositoryDto.setCommitDto(commitDto);
         return depositoryDto;
     }
 }
-
-
-/*
-    
-*/
