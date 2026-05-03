@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class TreeService {
     private final TreeRepository treeRepository;
-    //implement a feature in controller which throws error if filepaths.length
     public Tree treeRepresentation (List<String> filePaths, List<MultipartFile> file){
 
         Tree rootTree = new Tree();
