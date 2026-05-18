@@ -9,6 +9,5 @@ import com.neo4j.node.Branch;
 
 public interface BranchRepository extends Neo4jRepository<Branch, String> {
     @Query( "MATCH (b:Branch {branchName: $BranchName}) OPTIONAL MATCH (b)-[oldrel:POINTS_TO]->(c1:Commit) DELETE oldrel WITH b  MATCH (c2: Commit{hashId : $commitHash}) MERGE (b)-[newrel:POINTS_TO]->(c2) RETURN b;")
-    Optional<Branch> updateBrachPointer (String BranchName, String commitHash);
-
+    Optional<Branch> updateBranchPointer (String BranchName, String commitHash);
 }
