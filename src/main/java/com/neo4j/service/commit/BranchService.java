@@ -20,6 +20,7 @@ public class BranchService {
                     return branchRepository.save(newBranch);
                 });
         getBranch.setCommit(commit);
-        return branchRepository.save(getBranch);
+        return branchRepository.updateBranchPointer(branchName, commit.getHashId())
+                .orElseThrow(() -> new RuntimeException("Exception occured when changing branch pointer"));  
     }
 }
