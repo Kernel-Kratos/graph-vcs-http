@@ -4,11 +4,13 @@ import java.util.ArrayList;
 
 import org.springframework.stereotype.Service;
 
+
 import com.neo4j.dto.CommitDto;
 import com.neo4j.dto.DepositoryDto;
 import com.neo4j.node.Branch;
 import com.neo4j.node.Commit;
 import com.neo4j.node.Depository;
+import com.neo4j.repository.BranchRepository;
 import com.neo4j.repository.DepositoryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class DepositoryService {
     private final DepositoryRepository depositoryRepository;
     private final BranchService branchService;
+    private final BranchRepository branchRepository;
 
     public Depository addToDepository (String repoName, String branchName, Commit commit) {
         Depository depository = depositoryRepository.findById(repoName)
@@ -32,9 +35,13 @@ public class DepositoryService {
                     .anyMatch(branch -> branch.getBranchName().equals(branchName));
         if (!branchExists){
             depository.getBranches().add(updatedBranch);
+            return depositoryRepository.save(depository);
+        }
+        else{
+            depository.getBranches().removeIf(branchname -> (branchName.equals(updatedBranch.getBranchName())));
+            depository.getBranches().add(updatedBranch);
+            return depositoryRepository.save(depository);
         }   
-        depository.setHead(commit);
-        return depositoryRepository.save(depository);
     }
 
     public DepositoryDto convertTDepositoryDto (Depository depository, CommitDto commitDto){
