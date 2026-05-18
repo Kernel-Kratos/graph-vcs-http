@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 
 @RequiredArgsConstructor
-@RequestMapping("graph-vcs-https/api/v1")
+@RequestMapping("graph-vcs-http/api/v1")
 @RestController
 public class CommitIngestionController {
     private final CommitIngestionService commitIngestionService;
@@ -43,7 +43,7 @@ public class CommitIngestionController {
         Commit commit = commitIngestionService.commitSave(filePath, file, author, email, message, parentHash);
         CommitDto commitDto = commitIngestionService.convertToCommitDto(commit);
         Depository updatedRepo = depositoryService.addToDepository(repoName, branchName, commit);
-        DepositoryDto depositoryDto = depositoryService.convertTDepositoryDto(updatedRepo, commitDto);    
+        DepositoryDto depositoryDto = depositoryService.convertTDepositoryDto(updatedRepo, commitDto, branchName);    
         return ResponseEntity.ok(depositoryDto);
         } catch(Exception e) {
             throw new RuntimeException(e);
