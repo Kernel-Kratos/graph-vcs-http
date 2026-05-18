@@ -10,7 +10,6 @@ import com.neo4j.dto.DepositoryDto;
 import com.neo4j.node.Branch;
 import com.neo4j.node.Commit;
 import com.neo4j.node.Depository;
-import com.neo4j.repository.BranchRepository;
 import com.neo4j.repository.DepositoryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 public class DepositoryService {
     private final DepositoryRepository depositoryRepository;
     private final BranchService branchService;
-    private final BranchRepository branchRepository;
 
     public Depository addToDepository (String repoName, String branchName, Commit commit) {
         Depository depository = depositoryRepository.findById(repoName)
@@ -40,14 +38,16 @@ public class DepositoryService {
         else{
             depository.getBranches().removeIf(branchname -> (branchName.equals(updatedBranch.getBranchName())));
             depository.getBranches().add(updatedBranch);
-            return depositoryRepository.save(depository);
+            depositoryRepository.save(depository);
+            depositoryRepository.updateBranchHead(depository.getRepoName(), commit.getHashId());
+            return depository;
         }   
     }
 
-    public DepositoryDto convertTDepositoryDto (Depository depository, CommitDto commitDto){
+    public DepositoryDto convertTDepositoryDto (Depository depository, CommitDto commitDto, String branchName){
         DepositoryDto depositoryDto = new DepositoryDto();
         depositoryDto.setRepoName(depository.getRepoName());
-        depositoryDto.setBranchName(depository.getBranches().getLast().getBranchName());
+        depositoryDto.setBranchName(branchName); //reason i'm fetching this from controller instead of db is because db won't guarentee order until explicity asked
         depositoryDto.setCommitDto(commitDto);
         return depositoryDto;
     }
