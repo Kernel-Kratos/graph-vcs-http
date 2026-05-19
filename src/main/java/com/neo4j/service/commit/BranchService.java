@@ -12,11 +12,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class BranchService {
     private final BranchRepository branchRepository;
-    public Branch addToBranch (String branchName, Commit commit) {
+    public Branch addToBranch (String branchName, String repoName, Commit commit) {
         Branch getBranch = branchRepository.findById(branchName)
                 .orElseGet(() -> {
                     Branch newBranch = new Branch();
                     newBranch.setBranchName(branchName);
+                    newBranch.setBranchId(repoName + "-" + branchName);
                     return branchRepository.save(newBranch);
                 });
         getBranch.setCommit(commit);
