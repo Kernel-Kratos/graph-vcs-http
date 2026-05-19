@@ -17,7 +17,9 @@ import lombok.Setter;
 @Node
 public class Branch {
 
-    @Id //sincd branch names are unique
+    @Id 
+    private String branchId; //sincd branch names are unique but neo4j puts them in global space so if 2 diff repos have same branch 
+    // the branch is reused instead of creating a new one
     private String branchName;
 
     //in git branch points to the lastest commit.
