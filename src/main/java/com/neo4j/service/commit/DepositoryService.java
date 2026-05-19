@@ -28,7 +28,7 @@ public class DepositoryService {
                     newDepository.setBranches(new ArrayList<>());
                     return depositoryRepository.save(newDepository);
                 });
-       Branch updatedBranch = branchService.addToBranch(branchName, commit);
+       Branch updatedBranch = branchService.addToBranch(branchName, repoName, commit);
        boolean branchExists = depository.getBranches().stream()
                     .anyMatch(branch -> branch.getBranchName().equals(branchName));
         if (!branchExists){
