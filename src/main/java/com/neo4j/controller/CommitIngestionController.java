@@ -52,10 +52,3 @@ public class CommitIngestionController {
     
 
 }
-//test hello.txt and hello1.txt when they have same content and also same path.
-//ans -> so basically 2 arrows are drawn from src which point 2 same blob.
-
-// do the variation in this, same path diff content 
-// ans-> 2 pointer from src and 2 diff blobs
-//same contnet diff path etc.
-//I send a filenamed hello2.txt but in the path the file'sname wqas diff it was hello.txt and this is what was pickedup.
