@@ -7,9 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.neo4j.dto.CommitDto;
+
 import com.neo4j.node.Commit;
+import com.neo4j.node.Depository;
 import com.neo4j.node.Tree;
+
 import com.neo4j.repository.CommitRepository;
+import com.neo4j.repository.DepositoryRepository;
 import com.neo4j.utils.HashUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -20,9 +24,10 @@ public class CommitIngestionService {
 
     private final TreeService treeService;
     private final CommitRepository commitRepository;
+    private final DepositoryRepository depositoryRepository;
 
     public Commit commitSave (List<String> filepaths, List<MultipartFile> files, 
-        String author, String email, String message, String parentHash) {
+        String author, String email, String message, String repoName) {
             Tree masterTree = treeService.treeRepresentation(filepaths, files);
             Commit newCommit = new Commit();
             newCommit.setAuthor(author);
@@ -30,14 +35,18 @@ public class CommitIngestionService {
             newCommit.setMessage(message);
             newCommit.setTimestamp(LocalDateTime.now());
             newCommit.setTree(masterTree);
-            if(parentHash == null){
+            Depository depository;
+            String parentHash;
+            try { //this might bite me in the ass later on
+                depository = depositoryRepository.findById(repoName)
+                    .orElseThrow(() -> new RuntimeException());
+                newCommit.setParent(depository.getHead());
+                parentHash = newCommit.getParent().getHashId();
+            } catch (RuntimeException e) {
                 newCommit.setParent(null);
+                parentHash = null;
             }
-            else{
-                Commit parent = commitRepository.findById(parentHash)
-                        .orElseThrow(() -> new RuntimeException("no parent hash found with this id"));
-                newCommit.setParent(parent);
-            }
+       
         String rawData = newCommit.getEmail() + newCommit.getAuthor() + newCommit.getMessage() 
                 + newCommit.getTimestamp().toString() + newCommit.getTree().getHashId() + (parentHash != null ? parentHash: ""); //the last part "" appends the string with nothing. 
         newCommit.setHashId(HashUtil.hashString(rawData));
