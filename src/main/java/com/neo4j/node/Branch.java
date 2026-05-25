@@ -29,4 +29,7 @@ public class Branch {
     @Relationship(type = "POINTS_TO", direction = Relationship.Direction.OUTGOING) 
     private Commit commit;
     
+    public Branch(String branchId){
+        this.branchId = branchId;
+    }
 }
