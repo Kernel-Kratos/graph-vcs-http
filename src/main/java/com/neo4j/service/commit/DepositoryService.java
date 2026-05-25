@@ -33,7 +33,9 @@ public class DepositoryService {
                     .anyMatch(branch -> branch.getBranchName().equals(branchName));
         if (!branchExists){
             depository.getBranches().add(updatedBranch);
-            return depositoryRepository.save(depository);
+            depositoryRepository.save(depository);
+            depositoryRepository.updateBranchHead(depository.getRepoName(), commit.getHashId());
+            return depository;
         }
         else{
             depository.getBranches().removeIf(branchname -> (branchName.equals(updatedBranch.getBranchName())));
