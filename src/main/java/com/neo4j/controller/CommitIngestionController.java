@@ -30,7 +30,7 @@ public class CommitIngestionController {
 
     @PostMapping("/{repoName}/{branchName}")
     public ResponseEntity<DepositoryDto> commitIngestion (@RequestParam List<String> filePath, @RequestParam List <MultipartFile> file,
-        @RequestParam String author, @RequestParam String email, @RequestParam String message, @RequestParam(required = false) String parentHash,
+        @RequestParam String author, @RequestParam String email, @RequestParam String message,
     @PathVariable String repoName, @PathVariable String branchName){
         if (filePath.size() != file.size())
             throw new RuntimeException("There are not equal number of file to corresponding to filepath");
@@ -40,7 +40,7 @@ public class CommitIngestionController {
             }
         }
         try {
-        Commit commit = commitIngestionService.commitSave(filePath, file, author, email, message, parentHash);
+        Commit commit = commitIngestionService.commitSave(filePath, file, author, email, message, repoName);
         CommitDto commitDto = commitIngestionService.convertToCommitDto(commit);
         Depository updatedRepo = depositoryService.addToDepository(repoName, branchName, commit);
         DepositoryDto depositoryDto = depositoryService.convertTDepositoryDto(updatedRepo, commitDto, branchName);    
