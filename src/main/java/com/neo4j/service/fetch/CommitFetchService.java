@@ -33,7 +33,37 @@ public class CommitFetchService {
     public Commit findCommit (String hashId) {
         return commitRepository.findById(hashId)
                 .orElseThrow(() -> new RuntimeException("Commit Not found"));
-    } 
+    }
+
+    //this method only gets the "lastest" version of a file. cuz it will be only used to downnload the files. 
+    public Commit fetchAllCommit (String repoName, String branchName) {
+        Branch branch = branchRepository.findById(repoName + "-" + branchName)
+                .orElseThrow(() -> new RuntimeException("branch not found"));
+        Commit commit = branch.getCommit();
+        try {
+            //break this chunk into 2 try-catch, move do-while out the try-catch
+           String rootdir = "Graph-vcs-https";
+           Path rootdirPath = Path.of(System.getProperty("user.dir") + "/" + rootdir);
+           Files.createDirectory(rootdirPath);
+           Path createBin = Path.of(rootdir + "/bin");
+           Files.createDirectory(createBin);
+           Path repoPath = Path.of(createBin + "/" + repoName);
+           Files.createDirectories(repoPath);
+           int i = 0; 
+           do {
+                System.out.println(commit.getTimestamp());
+                System.out.println(i);
+                createRepoContentOnDisk(commit.getTree(), repoPath);
+                i ++;
+                commit = commit.getParent();
+           } while (commit != null);
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+        return null;
+    }
+
+    
     private void createRepoContentOnDisk (Tree masterTree, Path dirPath){
         for (Tree tree : masterTree.getSubTrees()) {
             String dir = tree.getFolderName();
