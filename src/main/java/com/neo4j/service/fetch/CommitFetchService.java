@@ -2,14 +2,10 @@ package com.neo4j.service.fetch;
 
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -36,18 +32,34 @@ public class CommitFetchService {
     }
 
     //this method only gets the "lastest" version of a file. cuz it will be only used to downnload the files. 
-    public Commit fetchAllCommit (String repoName, String branchName) {
+    public String fetchAllCommit (String repoName, String branchName) {
         Branch branch = branchRepository.findById(repoName + "-" + branchName)
                 .orElseThrow(() -> new RuntimeException("branch not found"));
         Commit commit = branch.getCommit();
+
+        String rootdir = "Graph-vcs-https";
+        Path rootdirPath = Path.of(System.getProperty("user.dir") + "/" + rootdir);
         try {
-            //break this chunk into 2 try-catch, move do-while out the try-catch
-           String rootdir = "Graph-vcs-https";
-           Path rootdirPath = Path.of(System.getProperty("user.dir") + "/" + rootdir);
-           Files.createDirectory(rootdirPath);
-           Path createBin = Path.of(rootdir + "/bin");
-           Files.createDirectory(createBin);
-           Path repoPath = Path.of(createBin + "/" + repoName);
+            Files.createDirectory(rootdirPath);
+        } catch (FileAlreadyExistsException e) {
+            //Dir is already present; don't need to do anything
+        } catch (IOException e) {
+            System.err.println(e);
+            System.out.println(rootdirPath.toString());
+        }
+
+        Path createBin = Path.of(rootdir + "/bin");
+        try {
+            Files.createDirectory(createBin);
+        } catch (FileAlreadyExistsException e) {
+            //Dir is already present; don't need to do anything
+        } catch (IOException e) {
+            System.err.println(e);
+            System.out.println(createBin.toString());
+        }   
+
+        Path repoPath = Path.of(createBin + "/" + repoName);
+        try {
            Files.createDirectories(repoPath);
            int i = 0; 
            do {
@@ -57,8 +69,11 @@ public class CommitFetchService {
                 i ++;
                 commit = commit.getParent();
            } while (commit != null);
+        } catch (FileAlreadyExistsException e) {
+
         } catch (IOException e) {
             System.err.println(e);
+            System.out.println(repoPath.toString());
         }
         return null;
     }
@@ -71,12 +86,12 @@ public class CommitFetchService {
             try {
                 Files.createDirectory(currentPath);
             } catch (FileAlreadyExistsException e) {
-                System.err.println(e);
-                //todo
+                //Dir is already present; don't need to do anything
             }
             catch (IOException e) {
                 System.out.println("Oops!!! IO exception occured when trying create the dir");
                 System.out.println(e);
+                System.out.println(currentPath.toString());
             }
             createRepoContentOnDisk(tree, currentPath);
             if (!tree.getBlobPointers().isEmpty()) {
@@ -86,15 +101,14 @@ public class CommitFetchService {
                         Files.createFile(filePath);
                         Files.write(filePath, blobPointer.getBlob().getRawContent());
                         blobList.add(blobPointer.getFileName());
-                    } catch (Exception e) {
+                    } catch(FileAlreadyExistsException e) {
+                        //File's latest verison is already present since travesal is done from newewst commit to oldest; don't need to do anything
+                    } catch (IOException e) {
                         System.err.println(e);
+                        System.out.println(filePath.toString());
                     }
                 }
             }
         }
     }
 }
-
-
-//work on all exceptions in createDataondiks. as there no logic what to do when the path exists;
-///add next steps
