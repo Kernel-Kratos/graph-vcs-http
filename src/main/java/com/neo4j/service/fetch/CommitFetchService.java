@@ -1,11 +1,18 @@
 package com.neo4j.service.fetch;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.springframework.stereotype.Service;
 
@@ -32,7 +39,7 @@ public class CommitFetchService {
     }
 
     //this method only gets the "lastest" version of a file. cuz it will be only used to downnload the files. 
-    public String fetchAllCommit (String repoName, String branchName) {
+    public Path fetchAllCommit (String repoName, String branchName) {
         Branch branch = branchRepository.findById(repoName + "-" + branchName)
                 .orElseThrow(() -> new RuntimeException("branch not found"));
         Commit commit = branch.getCommit();
@@ -60,13 +67,9 @@ public class CommitFetchService {
 
         Path repoPath = Path.of(createBin + "/" + repoName);
         try {
-           Files.createDirectories(repoPath);
-           int i = 0; 
+           Files.createDirectories(repoPath); 
            do {
-                System.out.println(commit.getTimestamp());
-                System.out.println(i);
                 createRepoContentOnDisk(commit.getTree(), repoPath);
-                i ++;
                 commit = commit.getParent();
            } while (commit != null);
         } catch (FileAlreadyExistsException e) {
@@ -74,6 +77,16 @@ public class CommitFetchService {
         } catch (IOException e) {
             System.err.println(e);
             System.out.println(repoPath.toString());
+        }
+        String zipName = repoName + "-" + branchName + ".zip";
+        Path zipPath = Path.of(createBin + "/" + zipName);
+        try {
+            Files.deleteIfExists(zipPath);
+            Files.createFile(zipPath);
+            zipit(repoPath, zipPath);
+            return zipPath;
+        } catch (IOException e) { 
+            System.out.println(e);
         }
         return null;
     }
@@ -111,4 +124,21 @@ public class CommitFetchService {
             }
         }
     }
-}
+
+    private void zipit(Path rootDir, Path zipPath) throws FileNotFoundException, IOException  {
+        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath.toFile()));
+        Files.walkFileTree(rootDir, new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                zos.putNextEntry(new ZipEntry(rootDir.relativize(file).toString()));
+                Files.copy(file, zos);
+                zos.closeEntry();
+                return FileVisitResult.CONTINUE;
+                }
+            });
+            zos.close();
+        }
+    }
+
+//To-Do : a method to delete repo if exists on disk;
+
