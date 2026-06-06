@@ -83,7 +83,9 @@ public class CommitFetchService {
         try {
             Files.deleteIfExists(zipPath);
             Files.createFile(zipPath);
+            zipPath = Path.of(createBin + "/" + zipName);
             zipit(repoPath, zipPath);
+            deleteRepoFromDisk(repoPath);
             return zipPath;
         } catch (IOException e) { 
             System.out.println(e);
@@ -125,20 +127,36 @@ public class CommitFetchService {
         }
     }
 
-    private void zipit(Path rootDir, Path zipPath) throws FileNotFoundException, IOException  {
+    private void zipit(Path repoPath, Path zipPath) throws FileNotFoundException, IOException  {
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipPath.toFile()));
-        Files.walkFileTree(rootDir, new SimpleFileVisitor<Path>(){
-            @Override
+        Files.walkFileTree(repoPath, new SimpleFileVisitor<Path>(){
+        @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                zos.putNextEntry(new ZipEntry(rootDir.relativize(file).toString()));
+                zos.putNextEntry(new ZipEntry(repoPath.relativize(file).toString()));
                 Files.copy(file, zos);
                 zos.closeEntry();
                 return FileVisitResult.CONTINUE;
-                }
-            });
-            zos.close();
-        }
+            }
+        });
+        zos.close();
     }
+    
+    private void deleteRepoFromDisk (Path repoPath) throws IOException {
+        Files.walkFileTree(repoPath, new SimpleFileVisitor<Path>(){
+        @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;   
+            }
+        @Override
+            public FileVisitResult postVisitDirectory (Path file, IOException exc) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+        }); 
+    }
+}
 
-//To-Do : a method to delete repo if exists on disk;
+
+    
 
