@@ -1,9 +1,11 @@
 # Graph-VCS-Http 
 
-> A cryptographically Content-Addressable Storage (CAS) version control engine built with Spring Boot and Neo4j.
+> A version control that uses an actual graph database. 
 
 # Introduction
 This project explores the internal mechanics of distributed version control systems (like Git) and massive archival networks (like Software Heritage). Instead of storing flat files, this engine ingests repositories and maps them into a highly efficient, immutable Merkle Directed Acyclic Graph (DAG) in a graph database.
+
+> Fun fact: I named this Graph-vcs-http because this is a graph based version control system(vcs) that uses http protocl.
 
 ## Core Architecture & Features
 * **Recursive Merkle Hashing:** Directories (Trees) and files (Blobs) are hashed bottom-up using SHA-256. A parent folder's state is entirely dependent on the cryptographic hashes of its children.
@@ -13,7 +15,7 @@ This project explores the internal mechanics of distributed version control syst
 
 ## Tech Stack
 * **JAVA 21**
-* **Spring Boot 3.x**
+* **Spring Boot 4.x**
 * **Spring Data Neo4j (SDN)**
 * **Neo4j** (Graph Database) 
 
@@ -47,23 +49,34 @@ The engine maps standard filesystem concepts into the following Graph Nodes and 
  1. Ingest a commit
     Creates a new commit snapshot from a list of files and constructs underlying Merkle DAG.
     
-    **Endpoint: `(Post /graph-vcs-http/api/v1)`**
-    > Content Type: multipart/form-data
+    **Endpoint: `(Post /graph-vcs-http/api/v1/{repoName}/{branchName})`**
+    > Graph-vcs will automatically create the repo or branch if they do-not exist.
+    >
+    > Use Postman or Insomnia to test; Content Type: multipart/form-data	
     
       | Key | Type | Required | Description |
       |  :---- | ---- |  :---- | ---- |  
       | filepath | List<String> | Yes | The path of the file (eg. src/main/hello.java) |
       | file | List<MultipartFile> | Yes | The actual file(blob) |
-      | autor | String | Yes | Name of Commit's Author |
+      | author | String | Yes | Name of Commit's Author |
       | email | String | Yes | Email of Commit's Author |
       | message | String | Yes | Commit message |
-      | parentHash | String | No (Optional) | The SHA-256 hash of previous commit |
+
+ 2.  Download the Repo in Zip File. (more on this later) 
+     Downloads the repo in zip file with the `lastest` version of file. 
+
+     **Endpoint: `(Get /graph-vcs-http/api/v1/{repoName}/{branchName})`** 
+     > Downloaded zip file will be in the format: repositoryName-branchName.
 
 
-## Current Status & Roadmap
-* [x] Core DAG generation and hashing engine.
-* [x] Byte-level deduplication and relationship mapping.
-* [x] Commit snapshot ingestion.
-* [ ] Depository and Branch wrapper logic for repository tracking.
-* [ ] Retrieval API to reconstruct filesystem trees from a target commit.
-* [ ] Advanced Cypher Retrieval API to traverse the graph and reconstruct filesystem trees from any target commit.
+## Zip File Download
+  Whenever server is requested for zip file it will first fetch the files and directory structure from neo4j in memory, then create it on disk. 
+  All of these operations happen commit-by-commit. Traversal happens from newset to oldest commit.
+
+  The server will discard a file if a newer version of file has already been written to the disk.
+  The server will then convert this directory into a zip file and then stream it to the client.
+	
+  For the first time, server will `create a graph-vcs-http dir` in project root i.e where `pom.xml` is `located`.
+  The graph-vcs-http dir will have a dir named `bin`. This is where all the fetched files and .zip files will be stored.
+	
+
