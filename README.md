@@ -5,7 +5,7 @@
 # Introduction
 This project explores the internal mechanics of distributed version control systems (like Git) and massive archival networks (like Software Heritage). Instead of storing flat files, this engine ingests repositories and maps them into a highly efficient, immutable Merkle Directed Acyclic Graph (DAG) in a graph database.
 
-> Fun fact: I named this Graph-vcs-http because this is a graph based version control system(vcs) that uses http protocl.
+> Fun fact: I named this Graph-vcs-http because this is a graph based version control system(vcs) that uses http protocol.
 
 ## Core Architecture & Features
 * **Recursive Merkle Hashing:** Directories (Trees) and files (Blobs) are hashed bottom-up using SHA-256. A parent folder's state is entirely dependent on the cryptographic hashes of its children.
